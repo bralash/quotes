@@ -15,10 +15,11 @@ struct QuoteGuessGame: View {
     
     @State private var correctSound: AVAudioPlayer?
     @State private var incorrectSound: AVAudioPlayer?
+    @State private var soundsSetup: Bool = false
     
-    init() {
-        setupSounds()
-    }
+//    init() {
+//        setupSounds()
+//    }
     
     var body: some View {
         ZStack {
@@ -36,6 +37,9 @@ struct QuoteGuessGame: View {
             }
         }
         .onAppear {
+            if !soundsSetup {
+                soundsSetup = setupSounds()
+            }
             gameViewModel.startGame()
         }
     }
@@ -212,29 +216,94 @@ struct QuoteGuessGame: View {
         }
     }
     
-    private func setupSounds() {
-        if let correctSoundURL = Bundle.main.url(forResource: "correct", withExtension: "mp3") {
-            do {
-                correctSound = try AVAudioPlayer(contentsOf: correctSoundURL)
-            } catch {
-                print("Error loading correct sound: \(error.localizedDescription)")
-            }
+//    private func setupSounds() {
+//        if let correctSoundURL = Bundle.main.url(forResource: "correct", withExtension: "mp3") {
+//            do {
+//                correctSound = try AVAudioPlayer(contentsOf: correctSoundURL)
+//            } catch {
+//                print("Error loading correct sound: \(error.localizedDescription)")
+//            }
+//        }
+//        
+//        if let incorrectSoundURL = Bundle.main.url(forResource: "incorrect", withExtension: "mp3") {
+//            do {
+//                incorrectSound = try AVAudioPlayer(contentsOf: incorrectSoundURL)
+//            } catch {
+//                print("Error loading incorrect sound: \(error.localizedDescription)")
+//            }
+//        }
+//    }
+    
+    private func setupSounds() -> Bool {
+        print("Setting up sounds...")
+        
+        guard let correctSoundURL = Bundle.main.url(forResource: "correct", withExtension: "mp3") else {
+            print("Could not find correct.mp3 in bundle")
+            return false
         }
         
-        if let incorrectSoundURL = Bundle.main.url(forResource: "incorrect", withExtension: "mp3") {
-            do {
-                incorrectSound = try AVAudioPlayer(contentsOf: incorrectSoundURL)
-            } catch {
-                print("Error loading incorrect sound: \(error.localizedDescription)")
-            }
+        guard let incorrectSoundURL = Bundle.main.url(forResource: "incorrect", withExtension: "mp3") else {
+            print("Could not find incorrect.mp3 in bundle")
+            return false
+        }
+        
+        print("Sound URLs found:")
+        print("Correct sound URL: \(correctSoundURL)")
+        print("Incorrect sound URL: \(incorrectSoundURL)")
+        
+        do {
+            correctSound = try AVAudioPlayer(contentsOf: correctSoundURL)
+            incorrectSound = try AVAudioPlayer(contentsOf: incorrectSoundURL)
+            
+            correctSound?.prepareToPlay()
+            incorrectSound?.prepareToPlay()
+            
+            print("Sound players created successfully")
+            return true
+        } catch {
+            print("Error setting up sound players: \(error.localizedDescription)")
+            return false
         }
     }
     
+//    private func playSound(correct: Bool) {
+//        if correct {
+//            correctSound?.play()
+//        } else {
+//            incorrectSound?.play()
+//        }
+//    }
+    
     private func playSound(correct: Bool) {
+        print("Attempting to play sound: \(correct ? "correct" : "incorrect")")
+        
+        if !soundsSetup {
+            print("Sounds not set up, attempting to set up now")
+            soundsSetup = setupSounds()
+        }
+        
         if correct {
-            correctSound?.play()
+            guard let player = correctSound else {
+                print("Correct sound player is nil")
+                return
+            }
+            
+            if player.play() {
+                print("Correct sound played successfully")
+            } else {
+                print("Failed to play correct sound")
+            }
         } else {
-            incorrectSound?.play()
+            guard let player = incorrectSound else {
+                print("Incorrect sound player is nil")
+                return
+            }
+            
+            if player.play() {
+                print("Incorrect sound played successfully")
+            } else {
+                print("Failed to play incorrect sound")
+            }
         }
     }
 }
