@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E9DDC1A22CAC34F600867E15 /* correct.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E9DDC1A02CAC34F600867E15 /* correct.mp3 */; };
+		E9DDC1A32CAC34F600867E15 /* incorrect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E9DDC1A12CAC34F600867E15 /* incorrect.mp3 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E9DDC1612CABF2E800867E15 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		E9DDC14B2CABF2E700867E15 /* quotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = quotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9DDC1602CABF2E800867E15 /* quotesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = quotesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9DDC16A2CABF2E800867E15 /* quotesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = quotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9DDC1A02CAC34F600867E15 /* correct.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = correct.mp3; sourceTree = "<group>"; };
+		E9DDC1A12CAC34F600867E15 /* incorrect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = incorrect.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +82,7 @@
 		E9DDC1422CABF2E700867E15 = {
 			isa = PBXGroup;
 			children = (
+				E9DDC19B2CAC32E400867E15 /* Sounds */,
 				E9DDC14D2CABF2E700867E15 /* quotes */,
 				E9DDC1632CABF2E800867E15 /* quotesTests */,
 				E9DDC16D2CABF2E800867E15 /* quotesUITests */,
@@ -90,6 +98,15 @@
 				E9DDC16A2CABF2E800867E15 /* quotesUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E9DDC19B2CAC32E400867E15 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				E9DDC1A02CAC34F600867E15 /* correct.mp3 */,
+				E9DDC1A12CAC34F600867E15 /* incorrect.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,6 +229,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9DDC1A22CAC34F600867E15 /* correct.mp3 in Resources */,
+				E9DDC1A32CAC34F600867E15 /* incorrect.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

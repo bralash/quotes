@@ -5,12 +5,20 @@
 //  Created by Emmanuel  Asaber on 10/1/24.
 //
 import SwiftUI
+import AVFoundation
 
 struct QuoteGuessGame: View {
     @StateObject private var gameViewModel = QuoteGuessGameViewModel()
     @Environment(\.presentationMode) var presentationMode
     
     let options = ["A", "B", "C", "D"]
+    
+    @State private var correctSound: AVAudioPlayer?
+    @State private var incorrectSound: AVAudioPlayer?
+    
+    init() {
+        setupSounds()
+    }
     
     var body: some View {
         ZStack {
@@ -56,7 +64,8 @@ struct QuoteGuessGame: View {
                         .font(.headline)
                 }
             }
-            .padding()
+            .padding(.top, 20) // Adjusted padding to move score down
+            .padding(.horizontal)
             
             // Question counter
             HStack {
@@ -88,6 +97,7 @@ struct QuoteGuessGame: View {
                 ForEach(0..<min(4, gameViewModel.currentChoices.count), id: \.self) { index in
                     Button(action: {
                         gameViewModel.checkGuess(gameViewModel.currentChoices[index])
+                        playSound(correct: gameViewModel.currentChoices[index] == currentQuote.a)
                     }) {
                         HStack {
                             Text(options[index])
@@ -138,9 +148,9 @@ struct QuoteGuessGame: View {
             }
             .disabled(!gameViewModel.showCorrectAnswer)
             .padding(.horizontal)
+            .padding(.bottom, 20) // Adjusted padding to move button up
         }
     }
-    
     var gameOverView: some View {
         ZStack {
             Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all)
@@ -199,6 +209,32 @@ struct QuoteGuessGame: View {
             return "Fantastic! You're a quote master!"
         default:
             return "Great job!"
+        }
+    }
+    
+    private func setupSounds() {
+        if let correctSoundURL = Bundle.main.url(forResource: "correct", withExtension: "mp3") {
+            do {
+                correctSound = try AVAudioPlayer(contentsOf: correctSoundURL)
+            } catch {
+                print("Error loading correct sound: \(error.localizedDescription)")
+            }
+        }
+        
+        if let incorrectSoundURL = Bundle.main.url(forResource: "incorrect", withExtension: "mp3") {
+            do {
+                incorrectSound = try AVAudioPlayer(contentsOf: incorrectSoundURL)
+            } catch {
+                print("Error loading incorrect sound: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func playSound(correct: Bool) {
+        if correct {
+            correctSound?.play()
+        } else {
+            incorrectSound?.play()
         }
     }
 }
