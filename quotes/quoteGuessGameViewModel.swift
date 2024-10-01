@@ -13,15 +13,13 @@ class QuoteGuessGameViewModel: ObservableObject {
     @Published var score = 0
     @Published var isLoading = false
     @Published var error: Error?
-    @Published var lastGuessCorrect = false
-    
-    private var quoteIndex = 0
+    @Published var selectedAnswer: String?
+    @Published var showCorrectAnswer = false
+    @Published var quoteIndex = 0
+    @Published var isGameOver = false
+
     let totalQuestions = 5
     private var quotes: [Quote] = []
-    
-    var isGameOver: Bool {
-        quoteIndex >= totalQuestions
-    }
     
     func startGame() {
         resetGame()
@@ -67,7 +65,11 @@ class QuoteGuessGameViewModel: ObservableObject {
         if quoteIndex < min(quotes.count, totalQuestions) {
             currentQuote = quotes[quoteIndex]
             generateChoices()
+            selectedAnswer = nil
+            showCorrectAnswer = false
             quoteIndex += 1
+        } else {
+            isGameOver = true
         }
     }
     
@@ -75,7 +77,7 @@ class QuoteGuessGameViewModel: ObservableObject {
         guard let correctAuthor = currentQuote?.a else { return }
         currentChoices = [correctAuthor]
         
-        while currentChoices.count < 3 {
+        while currentChoices.count < 4 {
             if let randomQuote = quotes.randomElement(), !currentChoices.contains(randomQuote.a) {
                 currentChoices.append(randomQuote.a)
             }
@@ -85,8 +87,9 @@ class QuoteGuessGameViewModel: ObservableObject {
     }
     
     func checkGuess(_ guess: String) {
-        lastGuessCorrect = guess.lowercased() == currentQuote?.a.lowercased()
-        if lastGuessCorrect {
+        selectedAnswer = guess
+        showCorrectAnswer = true
+        if guess == currentQuote?.a {
             score += 1
         }
     }
@@ -97,6 +100,8 @@ class QuoteGuessGameViewModel: ObservableObject {
         quotes = []
         currentQuote = nil
         currentChoices = []
-        lastGuessCorrect = false
+        selectedAnswer = nil
+        showCorrectAnswer = false
+        isGameOver = false
     }
 }
