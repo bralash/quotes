@@ -10,76 +10,30 @@ import SwiftUI
 struct QuoteCard: View {
     let quote: Quote
     let onFavorite: () -> Void
-    @State private var showingShareSheet = false
-    @State private var animateHeart = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Quote content
-            VStack(alignment: .leading, spacing: 8) {
-                Text(quote.q)
-                    .font(.body)
-                    .foregroundColor(QuoteStyle.textColor)
-                Text("- \(quote.a)")
-                    .font(.caption)
-                    .foregroundColor(QuoteStyle.authorColor)
-            }
+            Text(quote.q)
+                .font(.system(size: 18, weight: .medium, design: .serif))
+                .foregroundColor(.primary)
+                .padding(.bottom, 8)
             
-            // Action buttons
             HStack {
+                Text("— \(quote.a)")
+                    .font(.system(size: 14, weight: .regular, design: .serif))
+                    .foregroundColor(.secondary)
+                
                 Spacer()
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                        animateHeart = true
-                        onFavorite()
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        animateHeart = false
-                    }
-                }) {
+                
+                Button(action: onFavorite) {
                     Image(systemName: quote.isFavorite ? "heart.fill" : "heart")
                         .foregroundColor(quote.isFavorite ? .red : .gray)
-                        .scaleEffect(animateHeart ? 1.3 : 1.0)
                 }
-                .buttonStyle(BorderlessButtonStyle())
-                
-                Spacer()
-                
-                Button(action: {
-                    showingShareSheet = true
-                }) {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundColor(.blue)
-                }
-                .buttonStyle(BorderlessButtonStyle())
-                Spacer()
             }
         }
-        .padding(QuoteStyle.padding)
-        .background(QuoteStyle.backgroundColor)
-        .cornerRadius(QuoteStyle.cornerRadius)
-        .shadow(radius: QuoteStyle.shadowRadius)
-        .sheet(isPresented: $showingShareSheet) {
-            ShareSheet(activityItems: [renderQuoteImage()])
-        }
-        .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
+        .padding(20)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
-    
-    
-    private func renderQuoteImage() -> UIImage {
-        let renderer = ImageRenderer(content: QuoteImageView(quote: quote))
-        renderer.scale = 3.0
-        return renderer.uiImage ?? UIImage()
-    }
-}
-
-struct ShareSheet: UIViewControllerRepresentable {
-    let activityItems: [Any]
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

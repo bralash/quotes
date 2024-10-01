@@ -13,19 +13,86 @@ class QuoteViewModel: ObservableObject {
     @Published var favoriteQuotes: [Quote] = []
     @Published var isLoading = false
     @Published var error: Error?
+    @Published var quoteOfTheDay: Quote?
+    @Published var shouldShowQuoteOfTheDay: Bool = false
     
     private let userDefaults = UserDefaults.standard
     private let quotesKey = "savedQuotes"
     private let favoritesKey = "favoriteQuotes"
+    private let lastShownDateKey = "LastShownQuoteOfTheDayDate"
+    private let quoteOfTheDayKey = "QuoteOfTheDay"
     
     init() {
         loadSavedQuotes()
         loadFavoriteQuotes()
     }
     
+    func fetchQuoteOfTheDay() {
+        let calendar = Calendar.current
+        if let lastShownDate = userDefaults.object(forKey: lastShownDateKey) as? Date,
+           calendar.isDateInToday(lastShownDate),
+           let savedQuote = getSavedQuoteOfTheDay() {
+            quoteOfTheDay = savedQuote
+            shouldShowQuoteOfTheDay = true
+        } else {
+            // Fetch new quote of the day
+            isLoading = true
+            error = nil
+            
+            guard let url = URL(string: "https://zenquotes.io/api/today") else {
+                isLoading = false
+                return
+            }
+            
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    
+                    if let error = error {
+                        self.error = error
+                        return
+                    }
+                    
+                    guard let data = data else {
+                        self.error = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+                        return
+                    }
+                    
+                    do {
+                        let decodedQuotes = try JSONDecoder().decode([Quote].self, from: data)
+                        if let todayQuote = decodedQuotes.first {
+                            self.quoteOfTheDay = todayQuote
+                            self.saveQuoteOfTheDay(todayQuote)
+                            self.userDefaults.set(Date(), forKey: self.lastShownDateKey)
+                            self.shouldShowQuoteOfTheDay = true
+                        }
+                    } catch {
+                        self.error = error
+                    }
+                }
+            }.resume()
+        }
+    }
+    
+    private func saveQuoteOfTheDay(_ quote: Quote) {
+        if let encodedData = try? JSONEncoder().encode(quote) {
+            userDefaults.set(encodedData, forKey: quoteOfTheDayKey)
+        }
+    }
+    
+    private func getSavedQuoteOfTheDay() -> Quote? {
+        guard let savedData = userDefaults.data(forKey: quoteOfTheDayKey) else { return nil }
+        return try? JSONDecoder().decode(Quote.self, from: savedData)
+    }
+    
     var currentDay: Int {
         let calendar = Calendar.current
         return calendar.ordinality(of: .day, in: .year, for: Date()) ?? 0
+    }
+    
+    var totalDaysInYear: Int {
+        let calendar = Calendar.current
+        return calendar.range(of: .day, in: .year, for: Date())?.count ?? 365
     }
     
     func fetchQuote() {

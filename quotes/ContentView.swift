@@ -13,14 +13,11 @@ struct ContentView: View {
     @State private var showingFavorites = false
     @State private var animateNewQuote = false
     @State private var showingGame = false
+    @State private var showingQuoteOfTheDay = true
     
     var body: some View {
         NavigationView {
             VStack {
-                Text("Day \(viewModel.currentDay) / 365")
-                    .font(.headline)
-                    .padding()
-                
                 if viewModel.isLoading && viewModel.quotes.isEmpty {
                     ProgressView()
                 } else if let error = viewModel.error {
@@ -39,6 +36,38 @@ struct ContentView: View {
                     }
                     .listStyle(PlainListStyle())
                 }
+                
+                HStack(spacing: 20) {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            animateNewQuote = true
+                            viewModel.fetchQuote()
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            animateNewQuote = false
+                        }
+                    }) {
+                        Image(systemName: "quote.bubble")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.blue)
+                            .clipShape(Circle())
+                    }
+                    .scaleEffect(animateNewQuote ? 1.1 : 1.0)
+                    
+                    Button(action: {
+                        showingGame = true
+                    }) {
+                        Image(systemName: "gamecontroller")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(Color.green)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.bottom, 20)
             }
             .navigationTitle("Quotes")
             .toolbar {
@@ -49,30 +78,6 @@ struct ContentView: View {
                         }
                     }
                 }
-                
-                ToolbarItem(placement: .bottomBar) {
-                    HStack {
-                        Button("New Quote") {
-                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                animateNewQuote = true
-                                viewModel.fetchQuote()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                animateNewQuote = false
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .scaleEffect(animateNewQuote ? 1.1 : 1.0)
-                        
-                        Spacer()
-                        
-                        Button("Play Game") {
-                            showingGame = true
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .padding(.horizontal)
-                }
             }
             .sheet(isPresented: $showingGame) {
                 QuoteGuessGame()
@@ -82,10 +87,23 @@ struct ContentView: View {
             if viewModel.quotes.isEmpty {
                 viewModel.fetchQuote()
             }
+            viewModel.fetchQuoteOfTheDay()
+        }
+        .overlay {
+            if viewModel.shouldShowQuoteOfTheDay, let quoteOfTheDay = viewModel.quoteOfTheDay {
+                QuoteOfTheDayView(
+                    quote: quoteOfTheDay,
+                    currentDay: viewModel.currentDay,
+                    totalDays: viewModel.totalDaysInYear
+                ) {
+                    viewModel.shouldShowQuoteOfTheDay = false
+                }
+                .transition(.opacity)
+                .animation(.easeInOut, value: viewModel.shouldShowQuoteOfTheDay)
+            }
         }
     }
 }
-
 
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)

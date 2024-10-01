@@ -55,20 +55,17 @@ struct QuoteGuessGame: View {
                         .foregroundColor(.blue)
                 }
                 Spacer()
-                Text("Quote Quiz")
+                Text("Guess The Author")
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
-                ZStack {
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 40, height: 40)
-                    Text("\(gameViewModel.score)")
-                        .foregroundColor(.white)
-                        .font(.headline)
-                }
+                Text("Score: \(gameViewModel.score)")
+                    .font(.headline)
+                    .padding(8)
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
             }
-            .padding(.top, 20) // Adjusted padding to move score down
+            .padding(.top, 30) // Adjusted padding to move score down
             .padding(.horizontal)
             
             // Question counter
@@ -155,6 +152,7 @@ struct QuoteGuessGame: View {
             .padding(.bottom, 20) // Adjusted padding to move button up
         }
     }
+
     var gameOverView: some View {
         ZStack {
             Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all)
