@@ -99,7 +99,7 @@ class QuoteViewModel: ObservableObject {
         isLoading = true
         error = nil
         
-        guard let url = URL(string: "https://zenquotes.io/api/random") else {
+        guard let url = URL(string: "https://zenquotes.io/api/quotes") else {
             isLoading = false
             return
         }
@@ -120,15 +120,12 @@ class QuoteViewModel: ObservableObject {
                 
                 do {
                     let decodedQuotes = try JSONDecoder().decode([Quote].self, from: data)
-                    if let newQuote = decodedQuotes.first {
-                        self.quotes.insert(newQuote, at: 0)
-                        if self.quotes.count > 5 {
-                            self.quotes.removeLast()
-                        }
-                        self.saveQuotes()
-                    }
+                    self.quotes = decodedQuotes
+                    SharedDataManager.shared.saveQuotes(decodedQuotes)
+                    print("Fetched and saved \(decodedQuotes.count) quotes")
                 } catch {
                     self.error = error
+                    print("Error decoding quotes: \(error)")
                 }
             }
         }.resume()
