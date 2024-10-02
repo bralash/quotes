@@ -20,21 +20,23 @@ struct Provider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         var entries: [QuoteEntry] = []
-        
         let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
+        let midnight = Calendar.current.startOfDay(for: currentDate)
+        let nextMidnight = Calendar.current.date(byAdding: .day, value: 1, to: midnight)!
+        
+        // Create an entry for each hour until midnight
+        for hourOffset in 0..<24 {
             let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            if let quote = SharedDataManager.shared.getRandomQuote() {
-                print("Widget timeline: Retrieved quote for hour \(hourOffset)")
-                let entry = QuoteEntry(date: entryDate, quote: quote)
-                entries.append(entry)
-            } else {
-                print("Widget timeline: Failed to retrieve quote for hour \(hourOffset)")
+            if entryDate < nextMidnight {
+                if let quote = SharedDataManager.shared.getRandomQuote() {
+                    let entry = QuoteEntry(date: entryDate, quote: quote)
+                    entries.append(entry)
+                }
             }
         }
         
+        // If no quotes are available, add a placeholder
         if entries.isEmpty {
-            print("Widget timeline: No entries generated, using placeholder")
             entries.append(QuoteEntry(date: currentDate, quote: Quote(q: "No quotes available", a: "Widget", h: "")))
         }
         
@@ -53,21 +55,33 @@ struct QuoteWidgetEntryView : View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        ZStack {
-            Color.clear
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(entry.quote.q)
-                    .font(.system(size: 14, weight: .medium, design: .serif))
-                    .foregroundColor(.primary)
-                    .lineLimit(nil)
-                Text("— \(entry.quote.a)")
-                    .font(.system(size: 12, weight: .regular, design: .serif))
-                    .foregroundColor(.secondary)
-            }
-            .padding()
+        VStack(alignment: .leading, spacing: 8) {
+            Text(entry.quote.q)
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(.primary)
+                .lineLimit(nil)
+            Text("— \(entry.quote.a)")
+                .font(.system(size: 12, weight: .regular, design: .serif))
+                .foregroundColor(.secondary)
         }
-        .widgetBackground(Color.clear)
+        .padding()
+        .modifier(WidgetBackgroundModifier())
+    }
+}
+
+struct WidgetBackgroundModifier: ViewModifier {
+    @Environment(\.widgetFamily) var family
+    
+    func body(content: Content) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            content
+                .containerBackground(for: .widget) {
+                    Color.clear
+                }
+        } else {
+            content
+                .background(Color(UIColor.systemBackground))
+        }
     }
 }
 
@@ -79,8 +93,9 @@ struct QuoteWidget: Widget {
             QuoteWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Quote of the Day")
-        .description("This widget displays an inspiring quote.")
+        .description("This widget displays an inspiring quote, updating hourly.")
         .supportedFamilies([.systemSmall, .systemMedium])
+        .contentMarginsDisabled()
     }
 }
 
