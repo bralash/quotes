@@ -69,7 +69,7 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 20)
             }
-            .navigationTitle("Quotes")
+            .navigationTitle("Lash Quotes")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(showingFavorites ? "All Quotes" : "Favorites") {
