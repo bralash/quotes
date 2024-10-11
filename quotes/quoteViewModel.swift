@@ -22,6 +22,8 @@ class QuoteViewModel: ObservableObject {
     private let lastShownDateKey = "LastShownQuoteOfTheDayDate"
     private let quoteOfTheDayKey = "QuoteOfTheDay"
     
+    private let maxQuotes = 5
+    
     init() {
         loadSavedQuotes()
         loadFavoriteQuotes()
@@ -120,9 +122,9 @@ class QuoteViewModel: ObservableObject {
                 
                 do {
                     let decodedQuotes = try JSONDecoder().decode([Quote].self, from: data)
-                    self.quotes = decodedQuotes
-                    SharedDataManager.shared.saveQuotes(decodedQuotes)
-                    print("Fetched and saved \(decodedQuotes.count) quotes")
+                    if let newQuote = decodedQuotes.first {
+                        self.addNewQuote(newQuote)
+                    }
                 } catch {
                     self.error = error
                     print("Error decoding quotes: \(error)")
@@ -131,18 +133,27 @@ class QuoteViewModel: ObservableObject {
         }.resume()
     }
     
+    private func addNewQuote(_ quote: Quote) {
+        quotes.insert(quote, at: 0)
+        if quotes.count > maxQuotes {
+            quotes.removeLast()
+        }
+        saveQuotes()
+        SharedDataManager.shared.saveQuotes(quotes)
+    }
+    
     func toggleFavorite(_ quote: Quote) {
         if let index = quotes.firstIndex(where: { $0.id == quote.id }) {
             quotes[index].isFavorite.toggle()
             objectWillChange.send()
-            if quotes[index].isFavorite {
-                favoriteQuotes.append(quotes[index])
-            } else {
-                favoriteQuotes.removeAll { $0.id == quote.id }
-            }
+            updateFavorites()
             saveQuotes()
             saveFavoriteQuotes()
         }
+    }
+    
+    private func updateFavorites() {
+        favoriteQuotes = quotes.filter { $0.isFavorite }
     }
     
     private func saveQuotes() {
@@ -158,6 +169,7 @@ class QuoteViewModel: ObservableObject {
         if let savedData = userDefaults.data(forKey: quotesKey) {
             do {
                 quotes = try JSONDecoder().decode([Quote].self, from: savedData)
+                updateFavorites()
             } catch {
                 print("Error loading saved quotes: \(error)")
             }
